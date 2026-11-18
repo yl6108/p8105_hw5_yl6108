@@ -1,0 +1,36 @@
+---
+title: "p8105_hw5_yl6108"
+output: github_document
+---
+
+```{r}
+library(tidyverse)
+
+```
+
+# Problem 1
+```{r function_plot}
+
+birthday_sim = function(n) {
+  any(duplicated(sample(1:365, n, replace = TRUE)))
+}
+
+set.seed(2026)
+
+birthday_results =
+  tibble(n = 2:50) |>
+  mutate(
+    prob = map_dbl(n, \(x) mean(replicate(10000, birthday_sim(x))))
+  )
+
+birthday_results |>
+  ggplot(aes(x = n, y = prob)) +
+  geom_line() +
+  labs(
+    x = "Group size",
+    y = "Probability of shared birthday"
+  )
+```
+The probability of sharing a birthday increases with group size. When group size is larger than 23, the probability of sharing a birthday reaches 50%.
+
+# Problem 2
