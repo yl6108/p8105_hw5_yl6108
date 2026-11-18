@@ -34,3 +34,35 @@ birthday_results |>
 The probability of sharing a birthday increases with group size. When group size is larger than 23, the probability of sharing a birthday reaches 50%.
 
 # Problem 2
+```{r import}
+subject_files =
+  tibble(file = list.files("data", pattern = "\\.csv$")) |>
+  mutate(data = map(file, \(x) read_csv(file.path("data", x))))
+
+study_data =
+  subject_files |>
+  unnest(data) |>
+  mutate(
+    subject_id = str_remove(file, "\\.csv$"),
+    arm = if_else(str_detect(file, "^con"), "Control", "Experimental")
+  ) |>
+  pivot_longer(
+    starts_with("week_"),
+    names_to = "week",
+    names_prefix = "week_",
+    values_to = "outcome"
+  ) |>
+  mutate(week = as.integer(week)) |>
+  select(subject_id, arm, week, outcome)
+```
+
+```{r spaghetti-plot}
+study_data |>
+  ggplot(aes(x = week, y = outcome, group = subject_id)) +
+  geom_line() +
+  facet_grid(~ arm) +
+  labs(
+    x = "Week",
+    y = "Outcome"
+  )
+```
