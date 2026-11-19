@@ -66,3 +66,70 @@ study_data |>
     y = "Outcome"
   )
 ```
+
+In the control group, the outcome fluctuated around the mean over time, while in the experimental group the outcome increased over time.
+
+# problem 3
+
+```{r Generating_simulation}
+sim_t_test = function(mu) {
+  x = rnorm(30, mean = mu, sd = 5)
+  t.test(x, mu = 0) |>
+    broom::tidy() |>
+    select(estimate, p.value)
+}
+
+set.seed(2026)
+
+simulation_results =
+  expand_grid(mu = 0:6, sim = 1:5000) |>
+  mutate(
+    result = map(mu, sim_t_test)
+  ) |>
+  unnest(result) |>
+  mutate(rejected = p.value < 0.05)
+
+simulation_summary =
+  simulation_results |>
+  group_by(mu) |>
+  summarize(
+    power = mean(rejected),
+    mean_estimate = mean(estimate),
+    mean_rejected = mean(estimate[rejected])
+  )
+```
+
+```{r plot}
+simulation_summary |>
+  ggplot(aes(x = mu, y = power)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x = "True mean",
+    y = "Power"
+  )
+
+
+simulation_summary |>
+  pivot_longer(
+    c(mean_estimate, mean_rejected),
+    names_to = "type",
+    values_to = "estimate"
+  ) |>
+  ggplot(aes(x = mu, y = estimate, color = type)) +
+  geom_line() +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(
+    x = "True mean",
+    y = "Average estimate"
+  )
+```
+
+Power increases as the true mean increases.
+
+The average estimate across all tests is close to the true mean. Because the sample mean is an unbiased estimator.
+
+
+
+
